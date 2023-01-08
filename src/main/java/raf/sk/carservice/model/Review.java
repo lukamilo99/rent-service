@@ -1,0 +1,21 @@
+package raf.sk.carservice.model;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+public class Review {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String rating;
+    private String comment;
+    private String creatorUsername;
+    @ManyToOne
+    private RentingCompany rentingCompany;
+}

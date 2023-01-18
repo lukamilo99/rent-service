@@ -2,8 +2,8 @@ package raf.sk.carservice.service.implementation;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import raf.sk.carservice.dto.CarCreateDto;
-import raf.sk.carservice.dto.CarPresentDto;
+import raf.sk.carservice.dto.carDto.CarCreateDto;
+import raf.sk.carservice.dto.carDto.CarPresentDto;
 import raf.sk.carservice.mapper.CarMapper;
 import raf.sk.carservice.model.Car;
 import raf.sk.carservice.repository.CarRepository;

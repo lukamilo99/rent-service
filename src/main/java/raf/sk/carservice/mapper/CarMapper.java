@@ -2,8 +2,8 @@ package raf.sk.carservice.mapper;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-import raf.sk.carservice.dto.CarCreateDto;
-import raf.sk.carservice.dto.CarPresentDto;
+import raf.sk.carservice.dto.carDto.CarCreateDto;
+import raf.sk.carservice.dto.carDto.CarPresentDto;
 import raf.sk.carservice.model.Car;
 
 import java.util.ArrayList;
@@ -23,6 +23,7 @@ public class CarMapper {
 
     public CarPresentDto carToCarPresentDto(Car car){
         CarPresentDto carPresentDtoDto = new CarPresentDto();
+        carPresentDtoDto.setId(car.getId());
         carPresentDtoDto.setBrand(car.getBrand());
         carPresentDtoDto.setType(car.getType());
         carPresentDtoDto.setModel(car.getModel());

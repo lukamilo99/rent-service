@@ -1,4 +1,4 @@
-package raf.sk.carservice.dto;
+package raf.sk.carservice.dto.carDto;
 
 import lombok.Getter;
 import lombok.Setter;

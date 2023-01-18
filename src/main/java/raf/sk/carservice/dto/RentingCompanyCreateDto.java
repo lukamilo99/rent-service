@@ -10,6 +10,5 @@ import lombok.Setter;
 public class RentingCompanyCreateDto {
     private String name;
     private String description;
-
     private String city;
 }

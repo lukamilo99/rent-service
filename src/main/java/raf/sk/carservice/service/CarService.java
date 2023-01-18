@@ -1,7 +1,7 @@
 package raf.sk.carservice.service;
 
-import raf.sk.carservice.dto.CarCreateDto;
-import raf.sk.carservice.dto.CarPresentDto;
+import raf.sk.carservice.dto.carDto.CarCreateDto;
+import raf.sk.carservice.dto.carDto.CarPresentDto;
 import java.util.List;
 import java.util.Optional;
 

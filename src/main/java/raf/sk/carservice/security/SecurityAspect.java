@@ -39,6 +39,7 @@ public class SecurityAspect {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         Claims claims = tokenService.parseToken(token);
+
         if (claims == null) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }

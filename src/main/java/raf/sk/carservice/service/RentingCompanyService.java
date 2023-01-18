@@ -8,6 +8,5 @@ import java.util.Optional;
 
 public interface RentingCompanyService {
     public void updateRentingCompany(Long id, RentingCompanyCreateDto rentingCompanyCreateDto);
-
     public Optional<RentingCompany> findByManagerId(Long id);
 }

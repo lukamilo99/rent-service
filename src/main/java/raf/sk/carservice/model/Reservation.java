@@ -6,22 +6,20 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Date;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
-public class Car {
+public class Reservation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String brand;
-    private String model;
-    private String type;
-    private BigDecimal pricePerDay;
     @ManyToOne
-    private RentingCompany ownerCompany;
-    @OneToMany(mappedBy = "car")
-    private List<Reservation> listOfReservations;
+    private Car car;
+    private Long userId;
+    private Date startDate;
+    private Date endDate;
+    private BigDecimal price;
 }

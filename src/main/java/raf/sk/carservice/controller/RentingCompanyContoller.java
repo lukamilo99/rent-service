@@ -15,13 +15,13 @@ public class RentingCompanyContoller {
     private RentingCompanyServiceImplementation rentingCompanyService;
     @PutMapping("update/{id}")
     @CheckPrivilege(roles = {"ADMIN", "MANAGER"})
-    public ResponseEntity<RentingCompanyCreateDto> updateRentingCompany(@PathVariable Long id, @RequestBody RentingCompanyCreateDto rentingCompanyCreateDto){
+    public ResponseEntity<RentingCompanyCreateDto> updateRentingCompany(@RequestHeader("Authorization") String authorization, @PathVariable Long id, @RequestBody RentingCompanyCreateDto rentingCompanyCreateDto){
         rentingCompanyService.updateRentingCompany(id, rentingCompanyCreateDto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
+    @CheckPrivilege(roles = {"ADMIN", "MANAGER", "CLIENT"})
     @GetMapping("/findManager/{id}")
-    public ResponseEntity<RentingCompanyCreateDto> findManagerById(@PathVariable Long id){
+    public ResponseEntity<RentingCompanyCreateDto> findManagerById(@RequestHeader("Authorization") String authorization, @PathVariable Long id){
         rentingCompanyService.findByManagerId(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }

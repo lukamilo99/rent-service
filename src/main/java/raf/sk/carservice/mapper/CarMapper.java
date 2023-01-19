@@ -28,6 +28,8 @@ public class CarMapper {
         carPresentDtoDto.setType(car.getType());
         carPresentDtoDto.setModel(car.getModel());
         carPresentDtoDto.setPricePerDay(car.getPricePerDay());
+        carPresentDtoDto.setCity(car.getOwnerCompany().getCity());
+        carPresentDtoDto.setRentingCompanyName(car.getOwnerCompany().getName());
         return carPresentDtoDto;
     }
 

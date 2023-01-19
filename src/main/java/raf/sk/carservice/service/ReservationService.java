@@ -9,7 +9,6 @@ import java.util.List;
 
 public interface ReservationService {
     List<String> findAvailableDatesForCar(Long id);
-    List<CarPresentDto> findAvailableCarsForDates(Date startDate, Date endDate);
     ReservationPresentDto findById(Long id);
     String makeReservation(ReservationCreateDto dto);
     String cancelReservationById(Long id);

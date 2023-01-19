@@ -11,4 +11,5 @@ public class CarCreateDto {
     private String model;
     private String type;
     private BigDecimal pricePerDay;
+    private Long rentingCompanyId;
 }

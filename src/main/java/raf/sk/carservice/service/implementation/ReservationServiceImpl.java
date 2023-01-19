@@ -8,15 +8,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import raf.sk.carservice.client.dto.user.UserPresentDto;
-import raf.sk.carservice.dto.carDto.CarPresentDto;
 import raf.sk.carservice.dto.reservationDto.ReservationCreateDto;
 import raf.sk.carservice.dto.reservationDto.ReservationPresentDto;
-import raf.sk.carservice.mapper.CarMapper;
 import raf.sk.carservice.mapper.ReservationMapper;
 import raf.sk.carservice.model.Car;
 import raf.sk.carservice.model.Reservation;
 import raf.sk.carservice.repository.CarRepository;
 import raf.sk.carservice.repository.ReservationRepository;
+import raf.sk.carservice.security.service.TokenService;
 import raf.sk.carservice.service.ReservationService;
 
 import java.math.BigDecimal;
@@ -25,17 +24,15 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class ReservationServiceImpl implements ReservationService {
     private ReservationRepository reservationRepository;
     private ReservationMapper reservationMapper;
-    private CarMapper carMapper;
     private CarRepository carRepository;
     private RestTemplate userServiceTemplate;
-
+    private TokenService tokenService;
     @Override
     public List<String> findAvailableDatesForCar(Long id) {
         List<String> resultList = new ArrayList<>();
@@ -45,11 +42,6 @@ public class ReservationServiceImpl implements ReservationService {
             resultList = findAvailableDates(reservationList.get());
         }
         return resultList;
-    }
-
-    @Override
-    public List<CarPresentDto> findAvailableCarsForDates(Date startDate, Date endDate) {
-        return findAvailableCars(startDate, endDate);
     }
 
     @Override
@@ -124,31 +116,24 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationMapper.toReservation(dto);
     }
 
-    private List<CarPresentDto> findAvailableCars(Date startDate, Date endDate){
-        Optional<List<Reservation>> reservationList = reservationRepository.findByEndDateIsAfterAndStartDateIsBeforeOrderByStartDate
-                (startDate, endDate);
-        List<Car> carList = carRepository.findAll();
-
-        if(reservationList.isPresent()){
-
-            List<Reservation> finalReservationList = reservationList.get();
-
-            for(Reservation reservation: finalReservationList){
-                carList.removeIf(car -> car.getId() == reservation.getCar().getId());
-            }
-        }
-        return carList.stream().map(carMapper::carToCarPresentDto).collect(Collectors.toList());
-    }
-
     private List<String> findAvailableDates(List<Reservation> reservationList){
         List<String> resultList = new ArrayList<>();
         int i;
 
-        for(i = 0; i < reservationList.size() - 1; i++){
-            resultList.add(reservationList.get(i).getEndDate().toString() + " - " +
-                    reservationList.get(i + 1).getStartDate().toString());
+        if(reservationList.size() == 0){
+            resultList.add(LocalDate.now() + " - any date");
+            return resultList;
         }
-        resultList.add(reservationList.get(i).getEndDate().toString() + " - " + "any date");
+
+        if(reservationList.get(0).getStartDate().after(java.sql.Date.valueOf(LocalDate.now()))){
+            resultList.add(LocalDate.now() + " - " + reservationList.get(0).getStartDate());
+        }
+
+        for(i = 0; i < reservationList.size() - 1; i++){
+            resultList.add(reservationList.get(i).getEndDate() + " - " +
+                    reservationList.get(i + 1).getStartDate());
+        }
+        resultList.add(reservationList.get(i).getEndDate() + " - " + "any date");
 
         return resultList;
     }

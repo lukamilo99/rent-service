@@ -1,6 +1,7 @@
 package raf.sk.carservice.controller;
 
 import lombok.AllArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,8 +10,8 @@ import raf.sk.carservice.dto.carDto.CarPresentDto;
 import raf.sk.carservice.security.CheckPrivilege;
 import raf.sk.carservice.service.implementation.CarServiceImplementation;
 import javax.validation.Valid;
+import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/car")
@@ -29,21 +30,25 @@ public class CarController {
         carService.deleteCarById(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
-    @GetMapping("/find/brand/{brand}")
+    @GetMapping("/find/brand")
     @CheckPrivilege(roles = {"ADMIN", "MANAGER", "CLIENT"})
-    public Optional<List<CarPresentDto>> findCarByBrand(@PathVariable String brand){
-        return carService.findCarByBrand(brand);
+    public ResponseEntity<List<CarPresentDto>> findCarByBrand(@RequestHeader("Authorization") String authorization, @RequestParam String brand){
+        return new ResponseEntity<>(carService.findCarByBrand(brand), HttpStatus.OK);
     }
-    @GetMapping("/find/model/{model}")
+    @GetMapping("/find/model")
     @CheckPrivilege(roles = {"ADMIN", "MANAGER", "CLIENT"})
-    public Optional<List<CarPresentDto>> findCarByModel(@PathVariable String model){
-        return carService.findCarByModel(model);
+    public ResponseEntity<List<CarPresentDto>> findCarByModel(@RequestHeader("Authorization") String authorization, @RequestParam String model){
+        return new ResponseEntity<>(carService.findCarByModel(model), HttpStatus.OK);
     }
-    @GetMapping("/find/type/{type}")
+    @GetMapping("/find/type")
     @CheckPrivilege(roles = {"ADMIN", "MANAGER", "CLIENT"})
-    public ResponseEntity<CarPresentDto> findCarByType(@PathVariable String type){
-        carService.findCarByType(type);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<List<CarPresentDto>> findCarByType(@RequestHeader("Authorization") String authorization, @RequestParam String type){
+        return new ResponseEntity<>(carService.findCarByType(type), HttpStatus.OK);
+    }
+    @GetMapping("/find-available-cars")
+    @CheckPrivilege(roles = {"ADMIN", "CLIENT"})
+    public ResponseEntity<List<CarPresentDto>> findAvailableCarsForDates(@RequestHeader("Authorization") String authorization, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
+                                                                         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endDate){
+        return new ResponseEntity<>(carService.findAvailableCarsForDates(startDate, endDate), HttpStatus.OK);
     }
 }

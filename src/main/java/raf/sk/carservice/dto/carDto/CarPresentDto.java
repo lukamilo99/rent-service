@@ -12,4 +12,6 @@ public class CarPresentDto {
     private String model;
     private String type;
     private BigDecimal pricePerDay;
+    private String rentingCompanyName;
+    private String city;
 }

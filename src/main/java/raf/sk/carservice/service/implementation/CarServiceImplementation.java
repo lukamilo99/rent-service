@@ -1,6 +1,7 @@
 package raf.sk.carservice.service.implementation;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import raf.sk.carservice.dto.carDto.CarCreateDto;
 import raf.sk.carservice.dto.carDto.CarPresentDto;
@@ -77,14 +78,14 @@ public class CarServiceImplementation implements CarService {
     }
 
     @Override
-    public List<CarPresentDto> findAvailableCarsForDates(Date startDate, Date endDate) {
-        return findAvailableCars(startDate, endDate);
+    public List<CarPresentDto> findAvailableCarsForDates(Date startDate, Date endDate, Specification<Car> spec) {
+        return findAvailableCars(startDate, endDate, spec);
     }
 
-    private List<CarPresentDto> findAvailableCars(Date startDate, Date endDate){
+    private List<CarPresentDto> findAvailableCars(Date startDate, Date endDate, Specification<Car> spec){
         Optional<List<Reservation>> reservationList = reservationRepository.findByEndDateIsAfterAndStartDateIsBeforeOrderByStartDate
                 (startDate, endDate);
-        List<Car> carList = carRepository.findAll();
+        List<Car> carList = carRepository.findAll(spec);
 
         if(reservationList.isPresent()){
 

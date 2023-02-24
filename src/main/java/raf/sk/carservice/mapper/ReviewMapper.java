@@ -1,8 +1,8 @@
 package raf.sk.carservice.mapper;
 
 import org.springframework.stereotype.Component;
-import raf.sk.carservice.dto.reviewDto.ReviewCreateDto;
-import raf.sk.carservice.dto.reviewDto.ReviewPresentDto;
+import raf.sk.carservice.dto.review.ReviewRequestDto;
+import raf.sk.carservice.dto.review.ReviewResponseDto;
 import raf.sk.carservice.model.Review;
 
 import java.util.ArrayList;
@@ -10,8 +10,9 @@ import java.util.List;
 
 @Component
 public class ReviewMapper {
-    public ReviewPresentDto toDto(Review review){
-        ReviewPresentDto dto = new ReviewPresentDto();
+    public ReviewResponseDto toDto(Review review){
+        ReviewResponseDto dto = new ReviewResponseDto();
+
         dto.setComment(review.getComment());
         dto.setRating(review.getRating());
         dto.setCreatorUsername(review.getCreatorUsername());
@@ -19,8 +20,9 @@ public class ReviewMapper {
         return dto;
     }
 
-    public Review toReview(ReviewCreateDto dto){
+    public Review toReview(ReviewRequestDto dto){
         Review review = new Review();
+
         review.setComment(dto.getComment());
         review.setRating(dto.getRating());
         review.setCreatorUsername(dto.getCreatorUsername());
@@ -28,8 +30,9 @@ public class ReviewMapper {
         return review;
     }
 
-    public List<ReviewPresentDto> toDtoList(List<Review> reviewList){
-        List<ReviewPresentDto> resultList = new ArrayList<>();
+    public List<ReviewResponseDto> toDtoList(List<Review> reviewList){
+        List<ReviewResponseDto> resultList = new ArrayList<>();
+
         for(Review review: reviewList){
             resultList.add(toDto(review));
         }

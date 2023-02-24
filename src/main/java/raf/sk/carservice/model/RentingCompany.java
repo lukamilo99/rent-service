@@ -17,7 +17,6 @@ public class RentingCompany {
     private Long id;
     private String name;
     private String description;
-    private String numberOfVehicle;
     private String city;
     private Long managerId;
     @OneToMany(mappedBy = "ownerCompany")

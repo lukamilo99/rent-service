@@ -1,15 +1,13 @@
 package raf.sk.carservice.service;
 
-import raf.sk.carservice.dto.carDto.CarPresentDto;
-import raf.sk.carservice.dto.reservationDto.ReservationCreateDto;
-import raf.sk.carservice.dto.reservationDto.ReservationPresentDto;
+import raf.sk.carservice.dto.reservation.ReservationRequestDto;
+import raf.sk.carservice.dto.reservation.ReservationResponseDto;
 
-import java.util.Date;
 import java.util.List;
 
 public interface ReservationService {
     List<String> findAvailableDatesForCar(Long id);
-    ReservationPresentDto findById(Long id);
-    String makeReservation(ReservationCreateDto dto);
+    ReservationResponseDto findById(Long id);
+    String makeReservation(ReservationRequestDto dto);
     String cancelReservationById(Long id);
 }

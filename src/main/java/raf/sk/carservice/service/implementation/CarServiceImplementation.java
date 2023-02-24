@@ -2,9 +2,12 @@ package raf.sk.carservice.service.implementation;
 
 import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import raf.sk.carservice.dto.carDto.CarCreateDto;
-import raf.sk.carservice.dto.carDto.CarPresentDto;
+import raf.sk.carservice.dto.car.CarRequestDto;
+import raf.sk.carservice.dto.car.CarResponseDto;
+import raf.sk.carservice.exception.CarNotFoundException;
+import raf.sk.carservice.exception.CompanyNotFoundException;
 import raf.sk.carservice.mapper.CarMapper;
 import raf.sk.carservice.model.Car;
 import raf.sk.carservice.model.RentingCompany;
@@ -12,26 +15,28 @@ import raf.sk.carservice.model.Reservation;
 import raf.sk.carservice.repository.CarRepository;
 import raf.sk.carservice.repository.RentingCompanyRepository;
 import raf.sk.carservice.repository.ReservationRepository;
+import raf.sk.carservice.security.model.CustomUserDetails;
 import raf.sk.carservice.service.CarService;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
-
-@Service
 @AllArgsConstructor
+@Service
 public class CarServiceImplementation implements CarService {
+
     private CarRepository carRepository;
     private CarMapper carMapper;
     private ReservationRepository reservationRepository;
     private RentingCompanyRepository companyRepository;
+
     @Override
-    public void addCar(CarCreateDto carCreateDto) {
-        Car car = carMapper.carCreateDtoToCar(carCreateDto);
-        Optional<RentingCompany> rentingCompany = companyRepository.findById(carCreateDto.getRentingCompanyId());
-        rentingCompany.ifPresent(car::setOwnerCompany);
+    public void addCar(CarRequestDto carRequestDto) {
+        CustomUserDetails userDetails = getUserDetails();
+        Car car = carMapper.carCreateDtoToCar(carRequestDto);
+
+        RentingCompany rentingCompany = companyRepository.findById(userDetails.getId()).orElseThrow(() -> new CompanyNotFoundException("Company not found"));
+        car.setOwnerCompany(rentingCompany);
 
         carRepository.save(car);
     }
@@ -42,59 +47,47 @@ public class CarServiceImplementation implements CarService {
     }
 
     @Override
-    public List<CarPresentDto> findCarByBrand(String brand) {
-        Optional<List<Car>> carList = carRepository.findCarByBrand(brand);
-        List<CarPresentDto> resultList = new ArrayList<>();
+    public List<CarResponseDto> findCarByBrand(String brand) {
+        List<Car> carList = carRepository.findCarByBrand(brand).orElseThrow(() -> new CarNotFoundException("There is no " + brand + " cars"));
 
-        if(carList.isPresent()){
-            resultList = carMapper.carPresentDtoList(carList.get());
-        }
-
-        return resultList;
+        return carMapper.carPresentDtoList(carList);
     }
 
     @Override
-    public List<CarPresentDto> findCarByModel(String model) {
-        Optional<List<Car>> carList = carRepository.findCarByModel(model);
-        List<CarPresentDto> resultList = new ArrayList<>();
+    public List<CarResponseDto> findCarByModel(String model) {
+        List<Car> carList = carRepository.findCarByModel(model).orElseThrow(() -> new CarNotFoundException("There is no " + model + " cars"));
 
-        if(carList.isPresent()){
-            resultList = carMapper.carPresentDtoList(carList.get());
-        }
-
-        return resultList;
+        return carMapper.carPresentDtoList(carList);
     }
 
     @Override
-    public List<CarPresentDto> findCarByType(String type) {
-        Optional<List<Car>> carList = carRepository.findCarByType(type);
-        List<CarPresentDto> resultList = new ArrayList<>();
+    public List<CarResponseDto> findCarByType(String type) {
+        List<Car> carList = carRepository.findCarByType(type).orElseThrow(() -> new CarNotFoundException("There is no " + type + " cars"));
 
-        if(carList.isPresent()){
-            resultList = carMapper.carPresentDtoList(carList.get());
-        }
-
-        return resultList;
+        return carMapper.carPresentDtoList(carList);
     }
 
     @Override
-    public List<CarPresentDto> findAvailableCarsForDates(Date startDate, Date endDate, Specification<Car> spec) {
+    public List<CarResponseDto> findAvailableCarsForDates(Date startDate, Date endDate, Specification<Car> spec) {
         return findAvailableCars(startDate, endDate, spec);
     }
 
-    private List<CarPresentDto> findAvailableCars(Date startDate, Date endDate, Specification<Car> spec){
-        Optional<List<Reservation>> reservationList = reservationRepository.findByEndDateIsAfterAndStartDateIsBeforeOrderByStartDate
-                (startDate, endDate);
+    private List<CarResponseDto> findAvailableCars(Date startDate, Date endDate, Specification<Car> spec){
         List<Car> carList = carRepository.findAll(spec);
+        List<Reservation> reservationList = reservationRepository.findByEndDateIsAfterAndStartDateIsBeforeOrderByStartDate
+                (startDate, endDate)
+                .orElse(null);
 
-        if(reservationList.isPresent()){
+        if (reservationList == null) return carList.stream().map(carMapper::carToCarPresentDto).collect(Collectors.toList());
 
-            List<Reservation> finalReservationList = reservationList.get();
-
-            for(Reservation reservation: finalReservationList){
-                carList.removeIf(car -> car.getId() == reservation.getCar().getId());
-            }
+        for(Reservation reservation: reservationList){
+                carList.removeIf(car -> car.getId().equals(reservation.getCar().getId()));
         }
+
         return carList.stream().map(carMapper::carToCarPresentDto).collect(Collectors.toList());
+    }
+
+    private CustomUserDetails getUserDetails(){
+        return (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }

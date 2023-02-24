@@ -2,8 +2,10 @@ package raf.sk.carservice.service.implementation;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import raf.sk.carservice.dto.reviewDto.ReviewCreateDto;
-import raf.sk.carservice.dto.reviewDto.ReviewPresentDto;
+import raf.sk.carservice.dto.review.ReviewRequestDto;
+import raf.sk.carservice.dto.review.ReviewResponseDto;
+import raf.sk.carservice.exception.CompanyNotFoundException;
+import raf.sk.carservice.exception.ReviewNotFoundException;
 import raf.sk.carservice.mapper.ReviewMapper;
 import raf.sk.carservice.model.RentingCompany;
 import raf.sk.carservice.model.Review;
@@ -11,9 +13,7 @@ import raf.sk.carservice.repository.RentingCompanyRepository;
 import raf.sk.carservice.repository.ReviewRepository;
 import raf.sk.carservice.service.ReviewService;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -22,25 +22,17 @@ public class ReviewServiceImpl implements ReviewService {
     private RentingCompanyRepository rentingCompanyRepository;
     private ReviewMapper reviewMapper;
     @Override
-    public List<ReviewPresentDto> findReviewByRentingCompanyName(String name) {
-        Optional<List<Review>> reviewList = reviewRepository.findReviewByRentingCompany_Name(name);
-        List<ReviewPresentDto> resultList = new ArrayList<>();
+    public List<ReviewResponseDto> findReviewByRentingCompanyName(String name) {
+        List<Review> reviewList = reviewRepository.findReviewByRentingCompany_Name(name).orElseThrow(() -> new ReviewNotFoundException("No reviews found for company"));
 
-        if(reviewList.isPresent()){
-            resultList = reviewMapper.toDtoList(reviewList.get());
-        }
-        return resultList;
+        return reviewMapper.toDtoList(reviewList);
      }
 
     @Override
-    public List<ReviewPresentDto> findReviewByRentingCompanyCity(String city) {
-        Optional<List<Review>> reviewList = reviewRepository.findReviewByRentingCompany_City(city);
-        List<ReviewPresentDto> resultList = new ArrayList<>();
+    public List<ReviewResponseDto> findReviewByRentingCompanyCity(String city) {
+        List<Review> reviewList = reviewRepository.findReviewByRentingCompany_City(city).orElseThrow(() -> new ReviewNotFoundException("No reviews found for city"));
 
-        if(reviewList.isPresent()){
-            resultList = reviewMapper.toDtoList(reviewList.get());
-        }
-        return resultList;
+        return reviewMapper.toDtoList(reviewList);
     }
 
     @Override
@@ -49,14 +41,11 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public void save(ReviewCreateDto dto) {
+    public void save(ReviewRequestDto dto) {
         Review review = reviewMapper.toReview(dto);
-        Optional<RentingCompany> rentingCompany = rentingCompanyRepository.findById(dto.getRentingCompanyId());
+        RentingCompany rentingCompany = rentingCompanyRepository.findById(dto.getRentingCompanyId()).orElseThrow(() -> new CompanyNotFoundException("Company not found"));
 
-        if(rentingCompany.isPresent()){
-            review.setRentingCompany(rentingCompany.get());
-            reviewRepository.save(review);
-        }
-        else System.out.println("There is no company with id" + dto.getRentingCompanyId());
+        review.setRentingCompany(rentingCompany);
+        reviewRepository.save(review);
     }
 }

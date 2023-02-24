@@ -1,12 +1,11 @@
 package raf.sk.carservice.service;
 
-import raf.sk.carservice.dto.RentingCompanyCreateDto;
-import raf.sk.carservice.model.RentingCompany;
+import raf.sk.carservice.dto.company.RentingCompanyRequestDto;
+import raf.sk.carservice.dto.company.RentingCompanyResponseDto;
 
-import javax.swing.text.html.Option;
-import java.util.Optional;
+import java.util.List;
 
 public interface RentingCompanyService {
-    public void updateRentingCompany(Long id, RentingCompanyCreateDto rentingCompanyCreateDto);
-    public Optional<RentingCompany> findByManagerId(Long id);
+    public void updateRentingCompany(RentingCompanyRequestDto rentingCompanyRequestDto);
+    public List<RentingCompanyResponseDto> findByManagerId(Long id);
 }

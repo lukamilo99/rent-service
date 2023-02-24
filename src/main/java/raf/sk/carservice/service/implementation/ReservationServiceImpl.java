@@ -3,19 +3,21 @@ package raf.sk.carservice.service.implementation;
 import lombok.AllArgsConstructor;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import raf.sk.carservice.client.dto.user.UserPresentDto;
-import raf.sk.carservice.dto.reservationDto.ReservationCreateDto;
-import raf.sk.carservice.dto.reservationDto.ReservationPresentDto;
+import raf.sk.carservice.client.ClientService;
+import raf.sk.carservice.dto.user.UserResponseDto;
+import raf.sk.carservice.dto.reservation.ReservationRequestDto;
+import raf.sk.carservice.dto.reservation.ReservationResponseDto;
+import raf.sk.carservice.exception.CarNotFoundException;
+import raf.sk.carservice.exception.InvalidReservationPeriodException;
+import raf.sk.carservice.exception.ReservationNotFoundException;
 import raf.sk.carservice.mapper.ReservationMapper;
 import raf.sk.carservice.model.Car;
 import raf.sk.carservice.model.Reservation;
 import raf.sk.carservice.repository.CarRepository;
 import raf.sk.carservice.repository.ReservationRepository;
-import raf.sk.carservice.security.service.TokenService;
+import raf.sk.carservice.security.model.CustomUserDetails;
 import raf.sk.carservice.service.ReservationService;
 
 import java.math.BigDecimal;
@@ -31,8 +33,7 @@ public class ReservationServiceImpl implements ReservationService {
     private ReservationRepository reservationRepository;
     private ReservationMapper reservationMapper;
     private CarRepository carRepository;
-    private RestTemplate userServiceTemplate;
-    private TokenService tokenService;
+    private ClientService clientService;
     @Override
     public List<String> findAvailableDatesForCar(Long id) {
         List<String> resultList = new ArrayList<>();
@@ -45,72 +46,59 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public ReservationPresentDto findById(Long id){
-        Optional<Reservation> reservation = reservationRepository.findById(id);
-        if(reservation.isPresent()){
-            return reservationMapper.toDto(reservation.get());
-        }
-        else{
-            System.out.println("There is no reservation with id " + id);
-            return new ReservationPresentDto();
-        }
+    public ReservationResponseDto findById(Long id){
+        Reservation reservation = reservationRepository.findById(id).orElseThrow(() -> new ReservationNotFoundException("Reservation not found"));
+
+        return reservationMapper.toDto(reservation);
     }
 
     public String cancelReservationById(Long id) {
-        Optional<Reservation> reservation = reservationRepository.findById(id);
-        int numOfReservationDays;
+        Reservation reservation = reservationRepository.findById(id).orElseThrow(() -> new ReservationNotFoundException("Reservation not found"));
 
-        if(reservation.isPresent()){
-            numOfReservationDays = getNumberOfDaysBetween(reservation.get().getStartDate(), reservation.get().getEndDate());
-            numOfReservationDays *= -1;
-            updateUserReservationDays(reservation.get().getUserId(), numOfReservationDays);
-        }
+        int numOfReservationDays = getNumberOfDaysBetween(reservation.getStartDate(), reservation.getEndDate()) * -1;
+        clientService.updateUserReservationDays(reservation.getUserId(), numOfReservationDays);
 
         reservationRepository.deleteById(id);
         return "Reservation canceled successfully";
     }
     @Override
-    public String makeReservation(ReservationCreateDto dto) {
+    public String makeReservation(ReservationRequestDto dto) {
+        CustomUserDetails userDetails = getUserDetails();
+        Long userId = userDetails.getId();
+
         Reservation reservation = isValidTimeForReservation(dto);
-        BigDecimal carPricePerDay = null;
-        BigDecimal reservationPrice;
+        reservation.setUserId(userId);
 
-        if(reservation == null) return "Reservation failed, try again";
+        Car car = carRepository.findById(dto.getCarId()).orElseThrow(() -> new CarNotFoundException("Car not found"));
+        reservation.setCar(car);
 
-        Optional<Car> car = carRepository.findById(dto.getCarId());
-        if(car.isPresent()){
-            reservation.setCar(car.get());
-            carPricePerDay = car.get().getPricePerDay();
-        }
-
-        reservationPrice = getFinalPrice(dto, carPricePerDay);
+        BigDecimal carPricePerDay = car.getPricePerDay();
+        BigDecimal reservationPrice = getPriceAfterUserDiscount(dto, carPricePerDay);
         reservation.setPrice(reservationPrice);
 
         reservationRepository.save(reservation);
+        clientService.updateUserReservationDays(userId, getNumberOfDaysBetween(dto.getStartDate(), dto.getEndDate()));
         return "Reservation successfully created";
     }
 
-    private Reservation isValidTimeForReservation(ReservationCreateDto dto){
+    private Reservation isValidTimeForReservation(ReservationRequestDto dto){
         Date startDate = dto.getStartDate();
         Date endDate = dto.getEndDate();
 
-        Optional<List<Reservation>> reservationList = reservationRepository.findByEndDateIsAfterAndCar_IdOrderByStartDate
-                (java.sql.Date.valueOf(LocalDate.now()), dto.getCarId());
+        List<Reservation> reservationList = reservationRepository.findByEndDateIsAfterAndCar_IdOrderByStartDate
+                (java.sql.Date.valueOf(LocalDate.now()), dto.getCarId())
+                .orElseThrow(() -> new ReservationNotFoundException("Reservation not found"));
 
-        if(reservationList.isPresent()){
+        for(Reservation reservation: reservationList){
 
-            List<Reservation> finalReservationList = reservationList.get();
-
-            for(Reservation reservation: finalReservationList){
-                if(startDate.after(reservation.getStartDate()) && startDate.before(reservation.getEndDate())){
-                    return null;
-                }
-                else if(endDate.after(reservation.getStartDate()) && endDate.before(reservation.getEndDate())){
-                    return null;
-                }
-                else if(startDate.after(reservation.getStartDate()) && endDate.before(reservation.getEndDate())){
-                    return null;
-                }
+            if(startDate.after(reservation.getStartDate()) && startDate.before(reservation.getEndDate())) {
+                throw new InvalidReservationPeriodException("Car is already reserved in given period");
+            }
+            else if(endDate.after(reservation.getStartDate()) && endDate.before(reservation.getEndDate())){
+                throw new InvalidReservationPeriodException("Car is already reserved in given period");
+            }
+            else if(startDate.after(reservation.getStartDate()) && endDate.before(reservation.getEndDate())){
+                throw new InvalidReservationPeriodException("Car is already reserved in given period");
             }
         }
         return reservationMapper.toReservation(dto);
@@ -138,28 +126,17 @@ public class ReservationServiceImpl implements ReservationService {
         return resultList;
     }
 
-    private UserPresentDto getUserById(Long id){
-        ResponseEntity<UserPresentDto> user = userServiceTemplate.exchange("/user/find/"
-                + id, HttpMethod.GET, null, UserPresentDto.class);
-        return user.getBody();
-    }
 
-    private void updateUserReservationDays(Long id, int numOfDays){
-        ResponseEntity<Void> user = userServiceTemplate.exchange("/user/updateReservationDays/{id}"
-                  + "?numOfDays={numOfDays}", HttpMethod.PUT, null, Void.class, id, numOfDays);
-    }
 
-    private BigDecimal getFinalPrice(ReservationCreateDto dto, BigDecimal carPricePerDay){
-        UserPresentDto user = getUserById(dto.getUserId());
-        BigDecimal finalPrice;
+    private BigDecimal getPriceAfterUserDiscount(ReservationRequestDto dto, BigDecimal carPricePerDay){
+        CustomUserDetails userDetails = getUserDetails();
+        Long userId = userDetails.getId();
         int numOfDaysForReservation = getNumberOfDaysBetween(dto.getStartDate(), dto.getEndDate());
-        double discountForUser = Double.valueOf(user.getRank().getDiscount());
 
-        finalPrice = carPricePerDay.multiply(BigDecimal.valueOf(numOfDaysForReservation)).multiply(BigDecimal.valueOf(1.0 - discountForUser / 100.0));
+        UserResponseDto userInfo =  clientService.getUserById(userId);
+        double discountForUser = Double.valueOf(userInfo.getRank().getDiscount());
 
-        updateUserReservationDays(dto.getUserId(), numOfDaysForReservation);
-
-        return finalPrice;
+        return carPricePerDay.multiply(BigDecimal.valueOf(numOfDaysForReservation)).multiply(BigDecimal.valueOf(1.0 - discountForUser / 100.0));
     }
 
     private int getNumberOfDaysBetween(Date startDate, Date endDate){
@@ -169,5 +146,9 @@ public class ReservationServiceImpl implements ReservationService {
         else numOfDaysForReservation = Days.daysBetween(new DateTime(startDate), new DateTime(endDate)).getDays();
 
         return numOfDaysForReservation;
+    }
+
+    private CustomUserDetails getUserDetails(){
+        return (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }

@@ -14,14 +14,16 @@ import raf.sk.carservice.service.RentingCompanyService;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-@Service
 @AllArgsConstructor
+@Service
 public class RentingCompanyServiceImplementation implements RentingCompanyService {
+
     private RentingCompanyRepository rentingCompanyRepository;
     private RentingCompanyMapper companyMapper;
+
     @Override
     public void updateRentingCompany(RentingCompanyRequestDto rentingCompanyRequestDto) {
+
         CustomUserDetails userDetails = getUserDetails();
         RentingCompany rentingCompany = rentingCompanyRepository.findById(userDetails.getId()).orElseThrow(() -> new CompanyNotFoundException("Company not found"));
 
@@ -31,12 +33,14 @@ public class RentingCompanyServiceImplementation implements RentingCompanyServic
 
     @Override
     public List<RentingCompanyResponseDto> findByManagerId(Long id) {
+
         List<RentingCompany> rentingCompanyList = rentingCompanyRepository.findByManagerId(id).orElseThrow(() -> new CompanyNotFoundException("Company not found"));
 
         return rentingCompanyList.stream().map(company -> companyMapper.rentingCompanyToRentingCompanyResponseDto(company)).collect(Collectors.toList());
     }
 
     private CustomUserDetails getUserDetails(){
+
         return (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }

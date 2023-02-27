@@ -12,15 +12,20 @@ import raf.sk.carservice.service.implementation.RentingCompanyServiceImplementat
 @RequestMapping("/company")
 @AllArgsConstructor
 public class RentingCompanyController {
+
     private RentingCompanyServiceImplementation rentingCompanyService;
+
     @PutMapping("update")
     public ResponseEntity<RentingCompanyRequestDto> updateRentingCompany(@RequestBody RentingCompanyRequestDto rentingCompanyRequestDto){
         rentingCompanyService.updateRentingCompany(rentingCompanyRequestDto);
+
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
     @GetMapping("/find/{id}")
     public ResponseEntity<RentingCompanyResponseDto> findManagerById(@PathVariable Long id){
         rentingCompanyService.findByManagerId(id);
+
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

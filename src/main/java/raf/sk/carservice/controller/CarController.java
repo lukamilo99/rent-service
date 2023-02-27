@@ -21,29 +21,38 @@ import java.util.List;
 @RequestMapping("/car")
 @AllArgsConstructor
 public class CarController {
+
     private CarServiceImplementation carService;
+
     @PostMapping("/add")
     public ResponseEntity<CarRequestDto> addCar(@RequestBody @Valid CarRequestDto carRequestDto){
         carService.addCar(carRequestDto);
+
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<CarRequestDto> deleteCarById(@PathVariable Long id){
         carService.deleteCarById(id);
+
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
     @GetMapping("/find/brand")
     public ResponseEntity<List<CarResponseDto>> findCarByBrand(@RequestParam String brand){
         return new ResponseEntity<>(carService.findCarByBrand(brand), HttpStatus.OK);
     }
+
     @GetMapping("/find/model")
     public ResponseEntity<List<CarResponseDto>> findCarByModel(@RequestParam String model){
         return new ResponseEntity<>(carService.findCarByModel(model), HttpStatus.OK);
     }
+
     @GetMapping("/find/type")
     public ResponseEntity<List<CarResponseDto>> findCarByType(@RequestParam String type){
         return new ResponseEntity<>(carService.findCarByType(type), HttpStatus.OK);
     }
+
     @GetMapping("/find/available-cars")
     public ResponseEntity<List<CarResponseDto>> findAvailableCarsForDates(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
                                                                           @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endDate,

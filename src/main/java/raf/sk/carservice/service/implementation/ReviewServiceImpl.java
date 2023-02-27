@@ -15,14 +15,17 @@ import raf.sk.carservice.service.ReviewService;
 
 import java.util.List;
 
-@Service
 @AllArgsConstructor
+@Service
 public class ReviewServiceImpl implements ReviewService {
+
     private ReviewRepository reviewRepository;
     private RentingCompanyRepository rentingCompanyRepository;
     private ReviewMapper reviewMapper;
+
     @Override
     public List<ReviewResponseDto> findReviewByRentingCompanyName(String name) {
+
         List<Review> reviewList = reviewRepository.findReviewByRentingCompany_Name(name).orElseThrow(() -> new ReviewNotFoundException("No reviews found for company"));
 
         return reviewMapper.toDtoList(reviewList);
@@ -30,6 +33,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public List<ReviewResponseDto> findReviewByRentingCompanyCity(String city) {
+
         List<Review> reviewList = reviewRepository.findReviewByRentingCompany_City(city).orElseThrow(() -> new ReviewNotFoundException("No reviews found for city"));
 
         return reviewMapper.toDtoList(reviewList);
@@ -37,15 +41,18 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public void deleteById(Long id) {
+
         reviewRepository.deleteById(id);
     }
 
     @Override
     public void save(ReviewRequestDto dto) {
-        Review review = reviewMapper.toReview(dto);
-        RentingCompany rentingCompany = rentingCompanyRepository.findById(dto.getRentingCompanyId()).orElseThrow(() -> new CompanyNotFoundException("Company not found"));
 
+        Review review = reviewMapper.toReview(dto);
+
+        RentingCompany rentingCompany = rentingCompanyRepository.findById(dto.getRentingCompanyId()).orElseThrow(() -> new CompanyNotFoundException("Company not found"));
         review.setRentingCompany(rentingCompany);
+
         reviewRepository.save(review);
     }
 }

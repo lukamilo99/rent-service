@@ -8,6 +8,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class RentingCompanyRequestDto {
+
     private String name;
     private String description;
     private String city;

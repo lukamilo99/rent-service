@@ -14,10 +14,13 @@ import java.util.List;
 @RequestMapping("/review")
 @AllArgsConstructor
 public class ReviewController {
+
     private ReviewService reviewService;
+
     @PostMapping("/create")
     public ResponseEntity<Void> createReview(@RequestBody ReviewRequestDto dto){
         reviewService.save(dto);
+
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -34,6 +37,7 @@ public class ReviewController {
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteById(@PathVariable Long id){
         reviewService.deleteById(id);
+
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

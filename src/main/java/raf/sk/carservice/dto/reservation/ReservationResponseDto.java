@@ -10,6 +10,7 @@ import java.sql.Date;
 @Setter
 @NoArgsConstructor
 public class ReservationResponseDto {
+
     private Long carId;
     private Long userId;
     private Date startDate;

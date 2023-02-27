@@ -17,8 +17,8 @@ public class ReservationController {
     private ReservationService reservationService;
 
     @PostMapping("/create")
-    public ResponseEntity<String> makeReservation(@RequestBody ReservationRequestDto dto){
-        return new ResponseEntity<>(reservationService.makeReservation(dto), HttpStatus.CREATED);
+    public ResponseEntity<String> makeReservation(@RequestBody ReservationRequestDto reservationInfo){
+        return new ResponseEntity<>(reservationService.makeReservation(reservationInfo), HttpStatus.CREATED);
     }
 
     @GetMapping("/dates")

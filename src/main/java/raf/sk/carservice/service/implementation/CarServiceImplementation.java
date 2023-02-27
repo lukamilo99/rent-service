@@ -21,6 +21,7 @@ import raf.sk.carservice.service.CarService;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
 @AllArgsConstructor
 @Service
 public class CarServiceImplementation implements CarService {
@@ -32,6 +33,7 @@ public class CarServiceImplementation implements CarService {
 
     @Override
     public void addCar(CarRequestDto carRequestDto) {
+
         CustomUserDetails userDetails = getUserDetails();
         Car car = carMapper.carCreateDtoToCar(carRequestDto);
 
@@ -43,11 +45,13 @@ public class CarServiceImplementation implements CarService {
 
     @Override
     public void deleteCarById(Long id) {
+
         carRepository.deleteById(id);
     }
 
     @Override
     public List<CarResponseDto> findCarByBrand(String brand) {
+
         List<Car> carList = carRepository.findCarByBrand(brand).orElseThrow(() -> new CarNotFoundException("There is no " + brand + " cars"));
 
         return carMapper.carPresentDtoList(carList);
@@ -55,6 +59,7 @@ public class CarServiceImplementation implements CarService {
 
     @Override
     public List<CarResponseDto> findCarByModel(String model) {
+
         List<Car> carList = carRepository.findCarByModel(model).orElseThrow(() -> new CarNotFoundException("There is no " + model + " cars"));
 
         return carMapper.carPresentDtoList(carList);
@@ -62,6 +67,7 @@ public class CarServiceImplementation implements CarService {
 
     @Override
     public List<CarResponseDto> findCarByType(String type) {
+
         List<Car> carList = carRepository.findCarByType(type).orElseThrow(() -> new CarNotFoundException("There is no " + type + " cars"));
 
         return carMapper.carPresentDtoList(carList);
@@ -69,10 +75,12 @@ public class CarServiceImplementation implements CarService {
 
     @Override
     public List<CarResponseDto> findAvailableCarsForDates(Date startDate, Date endDate, Specification<Car> spec) {
+
         return findAvailableCars(startDate, endDate, spec);
     }
 
     private List<CarResponseDto> findAvailableCars(Date startDate, Date endDate, Specification<Car> spec){
+
         List<Car> carList = carRepository.findAll(spec);
         List<Reservation> reservationList = reservationRepository.findByEndDateIsAfterAndStartDateIsBeforeOrderByStartDate
                 (startDate, endDate)
@@ -88,6 +96,7 @@ public class CarServiceImplementation implements CarService {
     }
 
     private CustomUserDetails getUserDetails(){
+
         return (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }

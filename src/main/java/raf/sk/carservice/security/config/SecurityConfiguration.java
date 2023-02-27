@@ -23,7 +23,6 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
-
         try {
             http
                     .csrf().disable()
@@ -47,6 +46,7 @@ public class SecurityConfiguration {
             return http.build();
 
         } catch (Exception e) {
+
             throw new RuntimeException(e);
         }
     }

@@ -6,6 +6,7 @@ import raf.sk.carservice.dto.reservation.ReservationResponseDto;
 import java.util.List;
 
 public interface ReservationService {
+
     List<String> findAvailableDatesForCar(Long id);
     ReservationResponseDto findById(Long id);
     String makeReservation(ReservationRequestDto dto);

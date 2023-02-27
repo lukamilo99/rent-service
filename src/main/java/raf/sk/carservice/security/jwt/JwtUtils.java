@@ -8,6 +8,7 @@ import java.util.Base64;
 
 @Component
 public class JwtUtils {
+
     @Value("${oauth.jwt.secret}")
     private String jwtSecret;
 
